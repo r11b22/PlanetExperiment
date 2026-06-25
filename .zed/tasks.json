@@ -1,0 +1,22 @@
+[
+  {
+    "label": "CMake: Configure",
+    "command": "cmake -B build -DCMAKE_BUILD_TYPE=Debug",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+  },
+  {
+    "label": "CMake: Build",
+    "command": "cmake --build build",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "save": "current",
+  },
+  {
+    "label": "CMake: Run App",
+    "command": "cmake --build build && build/PlanetExperiment",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false,
+    "save": "current",
+  },
+]

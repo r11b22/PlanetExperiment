@@ -12,6 +12,7 @@
 IcoSphere::IcoSphere(std::string name, Material material, int subdivisions)
     : TransformableObject(name), MeshObject(name, {}, material)
 {
+    setShader("sphereShader");
     mVertices = createBaseVertices();
 
     mIndices = createBaseIndices();

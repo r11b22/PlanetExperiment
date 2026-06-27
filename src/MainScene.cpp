@@ -1,4 +1,5 @@
 #include "MainScene.hpp"
+#include "Asset/AssetLoader.hpp"
 #include "Buffer/Buffer.h"
 #include "Defaults/Objects/Drawables/MeshObject.h"
 #include "Defaults/Objects/Lighting/AmbientLight.h"
@@ -14,16 +15,27 @@
 #include "Defaults/Camera/FirstPersonCamera.h"
 #include "Shader/ShaderProgram.h"
 #include "Texture/CubemapAsset.hpp"
+#include "Texture/CubemapTexture.hpp"
+#include "Texture/CubemapTextureReference.hpp"
+#include "Texture/Texture.h"
 #include "Texture/TextureReference.hpp"
 #include "glm/ext/vector_float3.hpp"
+#include "Texture/TextureLoader.h"
+#include "Texture/CubemapLoader.hpp"
+
+
 #include <memory>
 
 
 MainScene::MainScene(){
-    addTextureAsset({"testTexture", "Textures/test_texture.png"});
-    addTextureAsset({"earthTexture", "Textures/2k_earth_daymap.jpg", true});
 
-    CubemapAsset earthMap = {"earthCubemap"};
+}
+
+void MainScene::onLoad(Renderer& renderer, Window& window) {
+    getAssetManager().loadAsset(AssetLoadInfo<Texture>{"testTexture", "Textures/test_texture.png"});
+    getAssetManager().loadAsset(AssetLoadInfo<Texture>{"earthTexture", "Textures/2k_earth_daymap.jpg", true});
+
+    AssetLoadInfo<CubemapTexture> earthMap = {"earthCubemap"};
 
     // Base directory
     std::filesystem::path baseDir = "Textures/earth/Color";
@@ -38,10 +50,10 @@ MainScene::MainScene(){
     earthMap.setPath(CubeFace::Front,  baseDir / "nz.png"); // Positive Z
     earthMap.setPath(CubeFace::Back,   baseDir / "pz.png"); // Negative Z
 
-    addCubemapAsset(earthMap);
+    getAssetManager().loadAsset(earthMap);
 
 
-    CubemapAsset earthNormalMap = {"earthNormalCubemap"};
+    AssetLoadInfo<CubemapTexture> earthNormalMap = {"earthNormalCubemap"};
 
     // Base directory
     std::filesystem::path normalBaseDir = "Textures/earth/Normals";
@@ -56,10 +68,10 @@ MainScene::MainScene(){
     earthNormalMap.setPath(CubeFace::Front,  normalBaseDir / "nz.png"); // Positive Z
     earthNormalMap.setPath(CubeFace::Back,   normalBaseDir / "pz.png"); // Negative Z
 
-    addCubemapAsset(earthNormalMap);
-}
+    getAssetManager().loadAsset(earthNormalMap);
 
-void MainScene::onLoad(Renderer& renderer, Window& window) {
+
+
     window.setVSYNC(false);
 
     setupSphereShader(renderer);
@@ -73,8 +85,11 @@ void MainScene::onLoad(Renderer& renderer, Window& window) {
     ObjectReference<DirectionalLight> directionalLight = createObject<DirectionalLight>("directional light", glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{1.0f});
 
 
-    TextureReference texture = getAssetManager().getTextureByName("earthTexture");
-    ObjectReference<PlanetBody> planetBody = createObject<PlanetBody>("earth", Material{"yes", texture}, "earthCubemap", "earthNormalCubemap");
+
+    CubemapTextureReference texture = getAssetManager().getAssetByName<CubemapTexture>("earthCubemap");
+    CubemapTextureReference normalMap = getAssetManager().getAssetByName<CubemapTexture>("earthNormalCubemap");
+
+    ObjectReference<PlanetBody> planetBody = createObject<PlanetBody>("earth", Material{"yes", glm::vec3(1.0f)}, texture, normalMap);
 
     cam->setPosition(glm::vec3{0.0f, 1.0f, 2.0f});
 }

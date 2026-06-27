@@ -6,8 +6,8 @@
 
 
 
-PlanetBody::PlanetBody(std::string name, Material material, std::string cubemapName, std::string cubemapNormalName)
-    : TransformableObject(name), IcoSphere(name, material, 5), mCubemapName(cubemapName), mCubemapNormalName(cubemapNormalName)
+PlanetBody::PlanetBody(std::string name, Material material, CubemapTextureReference texture, CubemapTextureReference normalMap)
+    : TransformableObject(name), IcoSphere(name, material, 5), mColorTexture(texture), mNormalMap(normalMap)
 {}
 
 
@@ -23,8 +23,8 @@ std::vector<RenderCommand> PlanetBody::getRenderCommands(){
     glm::mat4 transformationMatrix = getTransformationMatrix();
     command.uniforms.push_back({"uModelMatrix", transformationMatrix});
 
-    command.textureUniforms.push_back({"uCubemap", getAssetManager().getCubemapByName(mCubemapName)});
-    command.textureUniforms.push_back({"uNormalCubemap", getAssetManager().getCubemapByName(mCubemapNormalName)});
+    command.textureUniforms.push_back({"uCubemap", mColorTexture});
+    command.textureUniforms.push_back({"uNormalCubemap", mNormalMap});
 
     return {defaultState, command};
 }

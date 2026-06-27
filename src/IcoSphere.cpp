@@ -29,7 +29,7 @@ void IcoSphere::onLoad() {
     mesh.setVertices(mVertices);
     mesh.setIndices(mIndices);
 
-    MeshReference ref = getAssetManager().addMesh(std::move(mesh));
+    MeshReference ref = getAssetManager().addAsset<Mesh>(std::move(mesh));
     setMesh(ref);
 }
 

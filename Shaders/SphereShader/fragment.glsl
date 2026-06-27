@@ -91,16 +91,7 @@ vec3 getNormal() {
 
 void main()
 {
-    vec4 texColor;
-
-    switch (uMaterialProperties.materialType) {
-        case 0: // Colored
-        texColor = vec4(uColor, 1.0);
-        break;
-        case 1: // Textured
-        texColor = texture(uCubemap, normalize(LocalPos));
-        break;
-    }
+    vec4 texColor = texture(uCubemap, normalize(LocalPos));
 
     if (texColor.a < 0.5) {
         discard;

@@ -6,10 +6,14 @@
 
 
 
-PlanetBody::PlanetBody(std::string name, Material material, CubemapTextureReference texture, CubemapTextureReference normalMap)
-    : TransformableObject(name), IcoSphere(name, material, 5), mColorTexture(texture), mNormalMap(normalMap)
+PlanetBody::PlanetBody(std::string name, Material material, CubemapTextureReference texture, CubemapTextureReference normalMap, CubemapTextureReference depthMap)
+    : TransformableObject(name), IcoSphere(name, material, 6), mColorTexture(texture), mNormalMap(normalMap), mDepthMap(depthMap)
 {}
 
+
+void PlanetBody::setDepthMultiplier(float mul){
+    mDepthMultiplier = mul;
+}
 
 std::vector<RenderCommand> PlanetBody::getRenderCommands(){
     StateChangeCommand defaultState;
@@ -22,9 +26,11 @@ std::vector<RenderCommand> PlanetBody::getRenderCommands(){
 
     glm::mat4 transformationMatrix = getTransformationMatrix();
     command.uniforms.push_back({"uModelMatrix", transformationMatrix});
+    command.uniforms.push_back({"uDepthMultiplier", mDepthMultiplier});
 
     command.textureUniforms.push_back({"uCubemap", mColorTexture});
     command.textureUniforms.push_back({"uNormalCubemap", mNormalMap});
+    command.textureUniforms.push_back({"uDeptCubemap", mDepthMap});
 
     return {defaultState, command};
 }

@@ -28,6 +28,18 @@ add_executable(${PROJECT_NAME}
 
     src/PlanetBody.cpp
     include/PlanetBody.hpp
+
+    src/Generation/PlanetGenerator.cpp
+    include/Generation/PlanetGenerator.hpp
+
+    src/Generation/DepthmapGenerator.cpp
+    include/Generation/DepthmapGenerator.hpp
+
+    src/Random/PerlinNoise.cpp
+    include/Random/PerlinNoise.hpp
+
+    src/Random/FractalNoise.cpp
+    include/Random/FractalNoise.hpp
 )
 
 # Include the headers folder

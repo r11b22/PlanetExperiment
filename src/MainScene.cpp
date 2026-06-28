@@ -1,10 +1,12 @@
 #include "MainScene.hpp"
 #include "Asset/AssetLoader.hpp"
+#include "Asset/AssetReference.hpp"
 #include "Buffer/Buffer.h"
 #include "Defaults/Objects/Drawables/MeshObject.h"
 #include "Defaults/Objects/Lighting/AmbientLight.h"
 #include "Defaults/Objects/Lighting/DirectionalLight.h"
 #include "FileReader.h"
+#include "Generation/PlanetGenerator.hpp"
 #include "InputManager.h"
 #include "IcoSphere.hpp"
 #include "Mesh/MeshReference.hpp"
@@ -28,12 +30,8 @@
 
 
 MainScene::MainScene(){
-
-}
-
-void MainScene::onLoad(Renderer& renderer, Window& window) {
-    getAssetManager().loadAsset(AssetLoadInfo<Texture>{"testTexture", "Textures/test_texture.png"});
-    getAssetManager().loadAsset(AssetLoadInfo<Texture>{"earthTexture", "Textures/2k_earth_daymap.jpg", true});
+    addAsset(AssetLoadInfo<Texture>{"testTexture", "Textures/test_texture.png"});
+    addAsset(AssetLoadInfo<Texture>{"earthTexture", "Textures/2k_earth_daymap.jpg", true});
 
     AssetLoadInfo<CubemapTexture> earthMap = {"earthCubemap"};
 
@@ -50,7 +48,7 @@ void MainScene::onLoad(Renderer& renderer, Window& window) {
     earthMap.setPath(CubeFace::Front,  baseDir / "nz.png"); // Positive Z
     earthMap.setPath(CubeFace::Back,   baseDir / "pz.png"); // Negative Z
 
-    getAssetManager().loadAsset(earthMap);
+    addAsset(earthMap);
 
 
     AssetLoadInfo<CubemapTexture> earthNormalMap = {"earthNormalCubemap"};
@@ -68,7 +66,27 @@ void MainScene::onLoad(Renderer& renderer, Window& window) {
     earthNormalMap.setPath(CubeFace::Front,  normalBaseDir / "nz.png"); // Positive Z
     earthNormalMap.setPath(CubeFace::Back,   normalBaseDir / "pz.png"); // Negative Z
 
-    getAssetManager().loadAsset(earthNormalMap);
+    addAsset(earthNormalMap);
+
+
+    AssetLoadInfo<CubemapTexture> earthDepthMap = {"earthDepthCubemap"};
+    // Base directory
+    std::filesystem::path baseDepthDir = "Textures/earth/depthmap";
+
+    // Mapping the faces to their respective file names
+    earthDepthMap.setPath(CubeFace::Right,  baseDepthDir / "px.png"); // Positive X
+    earthDepthMap.setPath(CubeFace::Left,   baseDepthDir / "nx.png"); // Negative X
+
+    earthDepthMap.setPath(CubeFace::Top,    baseDepthDir / "py.png"); // Positive Y
+    earthDepthMap.setPath(CubeFace::Bottom, baseDepthDir / "ny.png"); // Negative Y
+
+    earthDepthMap.setPath(CubeFace::Front,  baseDepthDir / "nz.png"); // Positive Z
+    earthDepthMap.setPath(CubeFace::Back,   baseDepthDir / "pz.png"); // Negative Z
+
+    addAsset(earthDepthMap);
+}
+
+void MainScene::onLoad(Renderer& renderer, Window& window) {
 
 
 
@@ -81,15 +99,13 @@ void MainScene::onLoad(Renderer& renderer, Window& window) {
     ObjectReference<FirstPersonCamera> cam = createObject<FirstPersonCamera>("camera", inputManager, &window);
 
 
-    ObjectReference<AmbientLight> ambientLight = createObject<AmbientLight>("light");
+    ObjectReference<AmbientLight> ambientLight = createObject<AmbientLight>("light", glm::vec3{0.2f});
     ObjectReference<DirectionalLight> directionalLight = createObject<DirectionalLight>("directional light", glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{1.0f});
 
 
+    PlanetGenerator gen{1024};
 
-    CubemapTextureReference texture = getAssetManager().getAssetByName<CubemapTexture>("earthCubemap");
-    CubemapTextureReference normalMap = getAssetManager().getAssetByName<CubemapTexture>("earthNormalCubemap");
-
-    ObjectReference<PlanetBody> planetBody = createObject<PlanetBody>("earth", Material{"yes", glm::vec3(1.0f)}, texture, normalMap);
+    ObjectReference<PlanetBody> planet = gen.generatePlanet(*this);
 
     cam->setPosition(glm::vec3{0.0f, 1.0f, 2.0f});
 }

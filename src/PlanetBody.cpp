@@ -6,8 +6,8 @@
 
 
 
-PlanetBody::PlanetBody(std::string name, Material material, CubemapTextureReference texture, CubemapTextureReference normalMap, CubemapTextureReference depthMap)
-    : TransformableObject(name), IcoSphere(name, material, 6), mColorTexture(texture), mNormalMap(normalMap), mDepthMap(depthMap)
+PlanetBody::PlanetBody(std::string name, Material material, CubemapTextureReference normalMap, CubemapTextureReference depthMap)
+    : TransformableObject(name), IcoSphere(name, material, 6), mNormalMap(normalMap), mDepthMap(depthMap)
 {}
 
 
@@ -28,7 +28,6 @@ std::vector<RenderCommand> PlanetBody::getRenderCommands(){
     command.uniforms.push_back({"uModelMatrix", transformationMatrix});
     command.uniforms.push_back({"uDepthMultiplier", mDepthMultiplier});
 
-    command.textureUniforms.push_back({"uCubemap", mColorTexture});
     command.textureUniforms.push_back({"uNormalCubemap", mNormalMap});
     command.textureUniforms.push_back({"uDeptCubemap", mDepthMap});
 

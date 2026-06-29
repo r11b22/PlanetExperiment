@@ -192,7 +192,7 @@ float NormalmapGenerator::getHeightAt(CubeFace face, int u, int v) {
             break;
             case CubeFace::Top:
                 targetFace = CubeFace::Back;
-                targetV = mSize + v - 1;
+                targetV = -v;
                 targetU = mSize - u - 1;
             break;
             case CubeFace::Bottom:

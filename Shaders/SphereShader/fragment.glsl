@@ -56,7 +56,7 @@ in float Height;
 
 const int COLOR_SUBDIVISIONS = 3;
 vec3 color[COLOR_SUBDIVISIONS];
-float topHeight = 0.50f;
+float topHeight = 0.60f;
 float bottomHeight = 0.30f;
 
 vec3 getNormal() {
@@ -74,9 +74,16 @@ vec3 getNormal() {
 
 vec3 getColor() {
     float factor = clamp((Height - bottomHeight) / (topHeight - bottomHeight), 0.0f, 1.0f);
-    int colorIdx = int(factor * (COLOR_SUBDIVISIONS - 1));
 
-    return color[colorIdx];
+    float continuousIdx = factor * (COLOR_SUBDIVISIONS - 1);
+
+    int lowerIdx = int(floor(continuousIdx));
+    int upperIdx = int(ceil(continuousIdx));
+    float blend = continuousIdx - float(lowerIdx);
+
+    vec3 finalColor = mix(color[lowerIdx], color[upperIdx], blend);
+
+    return finalColor;
 }
 
 void main()

@@ -29,8 +29,6 @@ ObjectReference<PlanetBody> PlanetGenerator::generatePlanet(Scene& scene){
     assetManager.addAsset(std::move(normalTexture));
     assetManager.addAsset(std::move(depthTexture));
 
-    // TODO generate the textures
-    CubemapTextureReference texture = assetManager.getAssetByName<CubemapTexture>("depthTexture");
     CubemapTextureReference normalMap = assetManager.getAssetByName<CubemapTexture>("normalTexture");
     CubemapTextureReference depthMap = assetManager.getAssetByName<CubemapTexture>("depthTexture");
 
@@ -38,7 +36,7 @@ ObjectReference<PlanetBody> PlanetGenerator::generatePlanet(Scene& scene){
     planetMaterial.setSpecular(0.2f);
     planetMaterial.setShininess(32.0f);
 
-    ObjectReference<PlanetBody> planetBody = scene.createObject<PlanetBody>("earth", planetMaterial, texture, normalMap, depthMap);
+    ObjectReference<PlanetBody> planetBody = scene.createObject<PlanetBody>("earth", planetMaterial, normalMap, depthMap);
     planetBody->setDepthMultiplier(0.5f);
 
     return planetBody;

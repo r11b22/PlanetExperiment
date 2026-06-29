@@ -7,7 +7,7 @@
 
 
 PlanetBody::PlanetBody(std::string name, Material material, CubemapTextureReference normalMap, CubemapTextureReference depthMap)
-    : TransformableObject(name), IcoSphere(name, material, 6), mNormalMap(normalMap), mDepthMap(depthMap)
+    : TransformableObject(name), IcoSphere(name, material, 5), mNormalMap(normalMap), mDepthMap(depthMap)
 {}
 
 

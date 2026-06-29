@@ -37,7 +37,7 @@ ObjectReference<PlanetBody> PlanetGenerator::generatePlanet(Scene& scene){
     planetMaterial.setShininess(32.0f);
 
     ObjectReference<PlanetBody> planetBody = scene.createObject<PlanetBody>("earth", planetMaterial, normalMap, depthMap);
-    planetBody->setDepthMultiplier(0.5f);
+    planetBody->setDepthMultiplier(0.25f);
 
     return planetBody;
 }

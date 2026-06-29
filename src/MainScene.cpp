@@ -21,6 +21,7 @@
 #include "Texture/CubemapTextureReference.hpp"
 #include "Texture/Texture.h"
 #include "Texture/TextureReference.hpp"
+#include "Utilities/Random.h"
 #include "glm/ext/vector_float3.hpp"
 #include "Texture/TextureLoader.h"
 #include "Texture/CubemapLoader.hpp"
@@ -28,6 +29,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <vector>
 
 
 
@@ -119,10 +121,13 @@ void MainScene::onLoad(Renderer& renderer, Window& window) {
     ObjectReference<AmbientLight> ambientLight = createObject<AmbientLight>("light", glm::vec3{0.2f});
     ObjectReference<DirectionalLight> directionalLight = createObject<DirectionalLight>("directional light", glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{1.0f});
 
+    constexpr int PLANET_COUNT = 5;
 
-    PlanetGenerator gen{1024};
-
-    ObjectReference<PlanetBody> planet = gen.generatePlanet(*this);
+    for(int i = 0; i < PLANET_COUNT; i++){
+        PlanetGenerator gen{1024};
+        ObjectReference<PlanetBody> planet = gen.generatePlanet(*this);
+        planet->setPosition(getRandomVec3(glm::vec3{-5.0f}, glm::vec3{5.0f}));
+    }
 
     cam->setPosition(glm::vec3{0.0f, 0.0f, 4.0f});
 }
@@ -138,5 +143,10 @@ void MainScene::setupSphereShader(Renderer& renderer){
 void MainScene::onUpdate(Renderer& renderer, Window& window, float deltaT) {
     ObjectReference<PlanetBody> earth = getObjectByName<PlanetBody>("earth");
 
-    earth->rotate(deltaT*0.5, glm::vec3(0.0f, 1.0f, 0.0f));
+    ObjectView<PlanetBody> planets = getObjectsOfType<PlanetBody>();
+
+    for(auto& planet : planets){
+        planet.rotate(deltaT*0.5, glm::vec3(0.0f, 1.0f, 0.0f));
+    }
+
 }

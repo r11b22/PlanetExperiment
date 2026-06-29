@@ -7,6 +7,8 @@
 #include "PlanetBody.hpp"
 #include "Scene/Scene.hpp"
 #include "Texture/CubemapTexture.hpp"
+#include "glm/ext/vector_float3.hpp"
+#include "Utilities/Random.h"
 #include <utility>
 
 PlanetGenerator::PlanetGenerator(int size)
@@ -26,18 +28,19 @@ ObjectReference<PlanetBody> PlanetGenerator::generatePlanet(Scene& scene){
     CubemapTexture normalTexture = normalGen.generateDepthmap("normalTexture");
 
 
-    assetManager.addAsset(std::move(normalTexture));
-    assetManager.addAsset(std::move(depthTexture));
 
-    CubemapTextureReference normalMap = assetManager.getAssetByName<CubemapTexture>("normalTexture");
-    CubemapTextureReference depthMap = assetManager.getAssetByName<CubemapTexture>("depthTexture");
+
+
+    CubemapTextureReference normalMap = assetManager.addAsset(std::move(normalTexture));
+    CubemapTextureReference depthMap = assetManager.addAsset(std::move(depthTexture));
 
     Material planetMaterial = Material{"yes", glm::vec3(1.0f)};
     planetMaterial.setSpecular(0.2f);
     planetMaterial.setShininess(32.0f);
 
     ObjectReference<PlanetBody> planetBody = scene.createObject<PlanetBody>("earth", planetMaterial, normalMap, depthMap);
-    planetBody->setDepthMultiplier(0.25f);
+    planetBody->setDepthMultiplier(0.5f);
+    planetBody->setColors({getRandomVec3(glm::vec3{0.0f}, glm::vec3{1.0f}), getRandomVec3(glm::vec3{0.0f}, glm::vec3{1.0f}), getRandomVec3(glm::vec3{0.0f}, glm::vec3{1.0f})});
 
     return planetBody;
 }

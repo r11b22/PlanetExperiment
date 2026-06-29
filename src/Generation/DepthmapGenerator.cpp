@@ -2,9 +2,10 @@
 #include "Texture/CubemapTexture.hpp"
 #include "glm/ext/quaternion_geometric.hpp"
 #include "glm/ext/vector_float3.hpp"
+#include "Utilities/Random.h"
 
 DepthmapGenerator::DepthmapGenerator()
-    : mNoiseGenerator(42)
+    : mNoiseGenerator(getRandomInt(0, 1000000000)), mNoiseScale(getRandomFloat(1.0f, 5.0f))
 {
 
 }
@@ -58,7 +59,7 @@ const unsigned char* DepthmapGenerator::generateSide(CubeFace face, int size){
 
             glm::vec3 vector = uvToVector(face, u, v);
 
-            float randomValue = mNoiseGenerator.noise(vector.x, vector.y, vector.z, 7, 1.5, 0.75);
+            float randomValue = mNoiseGenerator.noise(vector.x * mNoiseScale, vector.y * mNoiseScale, vector.z * mNoiseScale, 3, 2.0, 0.35);
 
             float result = ((randomValue+1.0f)/2.0f)*255;
 

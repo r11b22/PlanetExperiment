@@ -13,6 +13,7 @@ class DepthmapGenerator {
         static constexpr int CHANNELS = 1;
         FractalNoise mNoiseGenerator;
         std::vector<const unsigned char*> mSides;
+        float mNoiseScale;
     public:
         DepthmapGenerator();
         ~DepthmapGenerator();

@@ -1,4 +1,4 @@
-#version 330 core
+#version 430 core
 layout(location = 0) out vec4 FragColor;
 
 #define MAX_POINT_LIGHTS 64
@@ -54,10 +54,12 @@ const float PI = 3.14159265359;
 
 in float Height;
 
-const int COLOR_SUBDIVISIONS = 3;
-vec3 color[COLOR_SUBDIVISIONS];
-float topHeight = 0.60f;
-float bottomHeight = 0.30f;
+const int COLOR_SUBDIVISIONS = 10;
+
+uniform int uColorCount;
+uniform vec3 uColors[COLOR_SUBDIVISIONS];
+uniform float uTopHeight;
+uniform float uBottomHeight;
 
 vec3 getNormal() {
     vec3 normalRGB = texture(uNormalCubemap, normalize(LocalPos)).rgb;
@@ -73,25 +75,21 @@ vec3 getNormal() {
 }
 
 vec3 getColor() {
-    float factor = clamp((Height - bottomHeight) / (topHeight - bottomHeight), 0.0f, 1.0f);
+    float factor = clamp((Height - uBottomHeight) / (uTopHeight - uBottomHeight), 0.0f, 1.0f);
 
-    float continuousIdx = factor * (COLOR_SUBDIVISIONS - 1);
+    float continuousIdx = factor * (uColorCount - 1);
 
     int lowerIdx = int(floor(continuousIdx));
     int upperIdx = int(ceil(continuousIdx));
     float blend = continuousIdx - float(lowerIdx);
 
-    vec3 finalColor = mix(color[lowerIdx], color[upperIdx], blend);
+    vec3 finalColor = mix(uColors[lowerIdx], uColors[upperIdx], blend);
 
     return finalColor;
 }
 
 void main()
 {
-    color[0] = vec3(1.0f, 1.0f, 1.0f);
-    color[1] = vec3(0.0f, 1.0f, 1.0f);
-    color[2] = vec3(1.0f, 0.0f, 1.0f);
-
     vec4 texColor = vec4(getColor(), 1.0f);
 
     vec3 norm = getNormal();

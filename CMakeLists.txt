@@ -35,6 +35,9 @@ add_executable(${PROJECT_NAME}
     src/Generation/DepthmapGenerator.cpp
     include/Generation/DepthmapGenerator.hpp
 
+    src/Generation/NormalmapGenerator.cpp
+    include/Generation/NormalmapGenerator.hpp
+
     src/Random/PerlinNoise.cpp
     include/Random/PerlinNoise.hpp
 

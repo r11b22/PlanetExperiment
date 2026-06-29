@@ -47,42 +47,18 @@ in vec3 FragPos; // pixel position
 in vec3 Normal;
 in vec3 LocalPos;
 
+in vec3 Tangent;
+in vec3 Bitangent;
+
 const float PI = 3.14159265359;
-
-/*vec4 getTextureColor() {
-    // spherical coordinates
-    /*float phi = atan(LocalPos.z, LocalPos.x);
-    float theta = asin(LocalPos.y);
-
-    float u = phi / (2.0 * PI) + 0.5;
-    float v = theta / PI + 0.5;
-
-    vec2 uv = vec2(u, v);
-
-    vec2 dX = dFdx(uv);
-    vec2 dY = dFdy(uv);
-
-    if (dX.x > 0.5) dX.x -= 1.0;
-    if (dX.x < -0.5) dX.x += 1.0;
-    if (dY.x > 0.5) dY.x -= 1.0;
-    if (dY.x < -0.5) dY.x += 1.0;*
-
-    return textureGrad(uTexture, uv, dX, dY);
-}*/
 
 vec3 getNormal() {
     vec3 normalRGB = texture(uNormalCubemap, normalize(LocalPos)).rgb;
     vec3 convertedNormal = (normalRGB * 2.0) - vec3(1.0);
 
-    vec3 worldNormal = normalize(Normal);
-
-    vec3 N = normalize(worldNormal);
-
-    vec3 up = abs(N.y) > 0.999 ? vec3(0, 0, 1) : vec3(0, 1, 0);
-
-    vec3 T = normalize(cross(up, N));
-
-    vec3 B = cross(N, T);
+    vec3 N = normalize(Normal);
+    vec3 T = normalize(Tangent);
+    vec3 B = normalize(Bitangent);
 
     mat3 tbn = mat3(T, B, N);
 

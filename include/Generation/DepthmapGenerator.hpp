@@ -6,10 +6,11 @@
 #include "glm/ext/vector_float3.hpp"
 #include <vector>
 
-constexpr int CHANNELS = 1;
+
 
 class DepthmapGenerator {
     private:
+        static constexpr int CHANNELS = 1;
         FractalNoise mNoiseGenerator;
         std::vector<const unsigned char*> mSides;
     public:
@@ -18,10 +19,12 @@ class DepthmapGenerator {
 
         CubemapTexture generateCubemap(std::string name, int size);
 
+        const unsigned char* getSide(CubeFace face);
+
     private:
         void clearSideData();
 
-        const unsigned char* getSide(CubeFace face);
+
         const unsigned char* generateSide(CubeFace face, int size);
 
         float normalizePixelCoordinates(float pix, int size);

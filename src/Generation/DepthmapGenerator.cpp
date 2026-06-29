@@ -58,9 +58,11 @@ const unsigned char* DepthmapGenerator::generateSide(CubeFace face, int size){
 
             glm::vec3 vector = uvToVector(face, u, v);
 
-            float randomValue = mNoiseGenerator.noise(vector.x, vector.y, vector.z, 10, 2.0, 0.5);
+            float randomValue = mNoiseGenerator.noise(vector.x, vector.y, vector.z, 7, 1.5, 0.75);
 
             float result = ((randomValue+1.0f)/2.0f)*255;
+
+
 
             data[index + 0] = static_cast<unsigned char>(result);  // R
         }
@@ -77,10 +79,10 @@ glm::vec3 DepthmapGenerator::uvToVector(CubeFace face, float u, float v) {
     glm::vec3 dir(0.0f);
 
     switch (face) {
-        case CubeFace::Right:     // +X
+        case CubeFace::Right:
             dir = glm::vec3(1.0f, -v, -u);
             break;
-        case CubeFace::Left:      // -X
+        case CubeFace::Left:
             dir = glm::vec3(-1.0f, -v, u);
             break;
         case CubeFace::Top:       // +Y
@@ -90,10 +92,10 @@ glm::vec3 DepthmapGenerator::uvToVector(CubeFace face, float u, float v) {
             dir = glm::vec3(u, -1.0f, -v);
             break;
         case CubeFace::Front:     // +Z
-            dir = glm::vec3(-u, -v, -1.0f);
+            dir = glm::vec3(u, -v, 1.0f);
             break;
         case CubeFace::Back:      // -Z
-            dir = glm::vec3(u, -v, 1.0f);
+            dir = glm::vec3(-u, -v, -1.0f);
             break;
     }
 

@@ -26,7 +26,9 @@
 #include "Texture/CubemapLoader.hpp"
 
 
+#include <filesystem>
 #include <memory>
+
 
 
 MainScene::MainScene(){
@@ -84,6 +86,21 @@ MainScene::MainScene(){
     earthDepthMap.setPath(CubeFace::Back,   baseDepthDir / "pz.png"); // Negative Z
 
     addAsset(earthDepthMap);
+
+    AssetLoadInfo<CubemapTexture> uvMap = {"uvMap"};
+
+    std::filesystem::path dir = "Textures/test_uv";
+
+    uvMap.setPath(CubeFace::Right,  dir / "right.png"); // Positive X
+    uvMap.setPath(CubeFace::Left,   dir / "left.png"); // Negative X
+
+    uvMap.setPath(CubeFace::Top,    dir / "top.png"); // Positive Y
+    uvMap.setPath(CubeFace::Bottom, dir / "bottom.png"); // Negative Y
+
+    uvMap.setPath(CubeFace::Front,  dir / "front.png"); // Positive Z
+    uvMap.setPath(CubeFace::Back,   dir / "back.png"); // Negative Z
+
+    addAsset(uvMap);
 }
 
 void MainScene::onLoad(Renderer& renderer, Window& window) {
@@ -107,7 +124,7 @@ void MainScene::onLoad(Renderer& renderer, Window& window) {
 
     ObjectReference<PlanetBody> planet = gen.generatePlanet(*this);
 
-    cam->setPosition(glm::vec3{0.0f, 1.0f, 2.0f});
+    cam->setPosition(glm::vec3{0.0f, 0.0f, 4.0f});
 }
 
 void MainScene::setupSphereShader(Renderer& renderer){

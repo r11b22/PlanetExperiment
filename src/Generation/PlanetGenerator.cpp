@@ -2,6 +2,7 @@
 #include "Asset/AssetManager.hpp"
 #include "Asset/AssetReference.hpp"
 #include "Generation/DepthmapGenerator.hpp"
+#include "Generation/NormalmapGenerator.hpp"
 #include "Object/ObjectRepository.h"
 #include "PlanetBody.hpp"
 #include "Scene/Scene.hpp"
@@ -21,12 +22,17 @@ ObjectReference<PlanetBody> PlanetGenerator::generatePlanet(Scene& scene){
 
     CubemapTexture depthTexture = gen.generateCubemap("depthTexture", mSize);
 
+    NormalmapGenerator normalGen{mSize, gen.getSide(CubeFace::Front), gen.getSide(CubeFace::Back), gen.getSide(CubeFace::Left), gen.getSide(CubeFace::Right), gen.getSide(CubeFace::Top), gen.getSide(CubeFace::Bottom)};
+    CubemapTexture normalTexture = normalGen.generateDepthmap("normalTexture");
 
+
+    assetManager.addAsset(std::move(normalTexture));
+    assetManager.addAsset(std::move(depthTexture));
 
     // TODO generate the textures
-    CubemapTextureReference texture = assetManager.addAsset(std::move(depthTexture));
-    CubemapTextureReference normalMap = assetManager.getAssetByName<CubemapTexture>("earthNormalCubemap");
-    CubemapTextureReference depthMap = texture;
+    CubemapTextureReference texture = assetManager.getAssetByName<CubemapTexture>("depthTexture");
+    CubemapTextureReference normalMap = assetManager.getAssetByName<CubemapTexture>("normalTexture");
+    CubemapTextureReference depthMap = assetManager.getAssetByName<CubemapTexture>("depthTexture");
 
     Material planetMaterial = Material{"yes", glm::vec3(1.0f)};
     planetMaterial.setSpecular(0.2f);

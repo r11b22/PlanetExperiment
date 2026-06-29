@@ -74,6 +74,10 @@ glm::vec3 NormalmapGenerator::calculateNormalPixel(CubeFace face, int u, int v){
         for (int j = -1; j <= 1; j++){
             float height = getHeightAt(face, u+j, v+i);
 
+            // normalize the heigth
+            height /= 255;
+
+
             int kernelY = i + 1;
             int kernelX = j + 1;
 
@@ -83,11 +87,14 @@ glm::vec3 NormalmapGenerator::calculateNormalPixel(CubeFace face, int u, int v){
     }
 
     float bumpStrength = 2.0f;
+
+
+    // Now use the corrected gradients for your local tangent space vector
     glm::vec3 bumpedVector = glm::vec3(-du * bumpStrength, -dv * bumpStrength, 1.0f);
 
     glm::vec3 localNormal = glm::normalize(bumpedVector);
 
-    glm::vec3 packedColor = (localNormal * 0.5f) + 0.5f;
+    glm::vec3 packedColor = (localNormal * 0.5f) + glm::vec3(0.5f);
 
     packedColor *= 255.0f;
 
@@ -102,7 +109,7 @@ float NormalmapGenerator::getHeightAt(CubeFace face, int u, int v) {
     CubeFace targetFace = face;
 
     if (targetU < 0){
-        targetU = mSize+u;
+        targetU = mSize+u - 1;
 
         // underflow
         switch (targetFace) {
@@ -125,8 +132,8 @@ float NormalmapGenerator::getHeightAt(CubeFace face, int u, int v) {
             break;
             case CubeFace::Bottom:
                 targetFace = CubeFace::Left;
-                targetV = mSize+u;
-                targetU = mSize-v;
+                targetV = mSize+u - 1;
+                targetU = mSize-v - 1;
             break;
         }
     }else if(targetU >= mSize){
@@ -149,12 +156,12 @@ float NormalmapGenerator::getHeightAt(CubeFace face, int u, int v) {
                 targetFace = CubeFace::Right;
 
                 targetV = u-mSize;
-                targetU = mSize-v;
+                targetU = mSize-v - 1;
             break;
             case CubeFace::Bottom:
                 targetFace = CubeFace::Right;
 
-                targetV = mSize - (u - mSize);
+                targetV = mSize - (u - mSize) - 1;
                 targetU = v;
             break;
         }
@@ -166,12 +173,12 @@ float NormalmapGenerator::getHeightAt(CubeFace face, int u, int v) {
         switch (targetFace) {
             case CubeFace::Front:
                 targetFace = CubeFace::Top;
-                targetV = mSize + v;
+                targetV = mSize + v - 1;
             break;
             case CubeFace::Back:
                 targetFace = CubeFace::Top;
                 targetV = -v;
-                targetU = mSize-u;
+                targetU = mSize-u - 1;
             break;
             case CubeFace::Left:
                 targetFace = CubeFace::Top;
@@ -180,17 +187,17 @@ float NormalmapGenerator::getHeightAt(CubeFace face, int u, int v) {
             break;
             case CubeFace::Right:
                 targetFace = CubeFace::Top;
-                targetU = mSize + v;
-                targetV = mSize - u;
+                targetU = mSize + v - 1;
+                targetV = mSize - u - 1;
             break;
             case CubeFace::Top:
                 targetFace = CubeFace::Back;
-                targetV = mSize + v;
-                targetU = mSize - u;
+                targetV = mSize + v - 1;
+                targetU = mSize - u - 1;
             break;
             case CubeFace::Bottom:
                 targetFace = CubeFace::Front;
-                targetV = mSize + v;
+                targetV = mSize + v - 1;
             break;
         }
     }else if (targetV >= mSize){
@@ -202,18 +209,18 @@ float NormalmapGenerator::getHeightAt(CubeFace face, int u, int v) {
             break;
             case CubeFace::Back:
                 targetFace = CubeFace::Bottom;
-                targetV = mSize - (v-mSize);
-                targetU = mSize - u;
+                targetV = mSize - (v-mSize) - 1;
+                targetU = mSize - u - 1;
             break;
             case CubeFace::Left:
                 targetFace = CubeFace::Bottom;
-                targetV = mSize - u;
+                targetV = mSize - u - 1;
                 targetU = v - mSize;
             break;
             case CubeFace::Right:
                 targetFace = CubeFace::Bottom;
                 targetV = u;
-                targetU = mSize - (v-mSize);
+                targetU = mSize - (v-mSize) - 1;
             break;
             case CubeFace::Top:
                 targetFace = CubeFace::Front;
@@ -221,12 +228,12 @@ float NormalmapGenerator::getHeightAt(CubeFace face, int u, int v) {
             break;
             case CubeFace::Bottom:
                 targetFace = CubeFace::Back;
-                targetV = mSize - (v-mSize);
-                targetU = mSize - u;
+                targetV = mSize - (v-mSize) - 1;
+                targetU = mSize - u - 1;
             break;
         }
     }
 
 
-    return mFaces[static_cast<int>(targetFace)][targetV * mSize + targetU];
+    return 1+mFaces[static_cast<int>(targetFace)][targetV * mSize + targetU];
 }

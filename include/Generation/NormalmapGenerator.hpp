@@ -18,4 +18,5 @@ class NormalmapGenerator {
 
         const unsigned char* generateSide(CubeFace face);
         float getHeightAt(CubeFace face, int u, int v);
+
 };

@@ -52,6 +52,13 @@ in vec3 Bitangent;
 
 const float PI = 3.14159265359;
 
+in float Height;
+
+const int COLOR_SUBDIVISIONS = 3;
+vec3 color[COLOR_SUBDIVISIONS];
+float topHeight = 0.50f;
+float bottomHeight = 0.30f;
+
 vec3 getNormal() {
     vec3 normalRGB = texture(uNormalCubemap, normalize(LocalPos)).rgb;
     vec3 convertedNormal = (normalRGB * 2.0) - vec3(1.0);
@@ -65,13 +72,20 @@ vec3 getNormal() {
     return normalize(tbn * convertedNormal);
 }
 
+vec3 getColor() {
+    float factor = clamp((Height - bottomHeight) / (topHeight - bottomHeight), 0.0f, 1.0f);
+    int colorIdx = int(factor * (COLOR_SUBDIVISIONS - 1));
+
+    return color[colorIdx];
+}
+
 void main()
 {
-    vec4 texColor = texture(uCubemap, normalize(LocalPos));
+    color[0] = vec3(1.0f, 1.0f, 1.0f);
+    color[1] = vec3(0.0f, 1.0f, 1.0f);
+    color[2] = vec3(1.0f, 0.0f, 1.0f);
 
-    if (texColor.a < 0.5) {
-        discard;
-    }
+    vec4 texColor = vec4(getColor(), 1.0f);
 
     vec3 norm = getNormal();
     vec3 viewDir = normalize(FragPos - uCameraPos);

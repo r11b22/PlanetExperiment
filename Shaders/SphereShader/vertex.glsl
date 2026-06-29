@@ -17,6 +17,8 @@ out vec3 LocalPos;
 out vec3 Tangent;
 out vec3 Bitangent;
 
+out float Height;
+
 void calculateTangentAndBitTangent(mat3 normalMatrix) {
     vec3 localNormal = normalize(aPos);
 
@@ -43,6 +45,7 @@ void main()
     calculateTangentAndBitTangent(normalMatrix);
 
     float depthOffset = texture(uDeptCubemap, aPos).r;
+    Height = depthOffset;
     depthOffset *= uDepthMultiplier;
 
     vec3 vertexPos = aPos + (aNorm * depthOffset);

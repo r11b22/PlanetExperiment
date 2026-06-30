@@ -20,11 +20,11 @@ CubemapTexture GPUDepthmapGenerator::generateCubemap(){
     mOutputTexutre.imageBind(0, GL_WRITE_ONLY);
 
     mCompute.setUniform({"uSeed", getRandomVec3(glm::vec3{-1000.0f}, glm::vec3{1000.0f})});
-    mCompute.setUniform({"uNoiseScale", getRandomFloat(1.0f, 5.0f)});
+    mCompute.setUniform({"uNoiseScale", getRandomFloat(2.0f, 7.0f)});
 
     mCompute.setUniform({"uOctaves", 7});
-    mCompute.setUniform({"uLacunarity", 2.0f});
-    mCompute.setUniform({"uGain", 0.25f});
+    mCompute.setUniform({"uLacunarity", 4.0f});
+    mCompute.setUniform({"uGain", 0.5f});
 
     mCompute.rawDispatch(mSize, mSize, 6);
     mCompute.waitForFinish();

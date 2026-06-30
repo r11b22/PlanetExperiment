@@ -32,14 +32,8 @@ add_executable(${PROJECT_NAME}
     src/Generation/PlanetGenerator.cpp
     include/Generation/PlanetGenerator.hpp
 
-    src/Generation/DepthmapGenerator.cpp
-    include/Generation/DepthmapGenerator.hpp
-
     src/Generation/GPUDepthmapGenerator.cpp
     include/Generation/GPUDepthmapGenerator.hpp
-
-    src/Generation/NormalmapGenerator.cpp
-    include/Generation/NormalmapGenerator.hpp
 
     src/Generation/GPUNormalmapGenerator.cpp
     include/Generation/GPUNormalmapGenerator.hpp

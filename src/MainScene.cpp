@@ -27,6 +27,7 @@
 #include "Texture/CubemapLoader.hpp"
 
 
+#include <cmath>
 #include <filesystem>
 #include <memory>
 #include <vector>
@@ -121,12 +122,16 @@ void MainScene::onLoad(Renderer& renderer, Window& window) {
     ObjectReference<AmbientLight> ambientLight = createObject<AmbientLight>("light", glm::vec3{0.2f});
     ObjectReference<DirectionalLight> directionalLight = createObject<DirectionalLight>("directional light", glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{1.0f});
 
-    constexpr int PLANET_COUNT = 5;
+    constexpr int PLANET_COUNT = 10;
+    constexpr int BASE_RESOLUTION = 2048;
 
     for(int i = 0; i < PLANET_COUNT; i++){
-        PlanetGenerator gen{2048};
+        float size = getRandomFloat(0.5f, 4.0f);
+
+        PlanetGenerator gen{static_cast<int>(round((BASE_RESOLUTION * size) / 2.0)) * 2};
         ObjectReference<PlanetBody> planet = gen.generatePlanet(*this);
-        planet->setPosition(getRandomVec3(glm::vec3{-5.0f}, glm::vec3{5.0f}));
+        planet->setPosition(getRandomVec3(glm::vec3{-PLANET_COUNT}, glm::vec3{PLANET_COUNT}));
+        planet->setScale(glm::vec3{size});
     }
 
     cam->setPosition(glm::vec3{0.0f, 0.0f, 4.0f});

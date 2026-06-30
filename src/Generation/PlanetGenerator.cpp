@@ -2,6 +2,8 @@
 #include "Asset/AssetManager.hpp"
 #include "Asset/AssetReference.hpp"
 #include "Generation/DepthmapGenerator.hpp"
+#include "Generation/GPUDepthmapGenerator.hpp"
+#include "Generation/GPUNormalmapGenerator.hpp"
 #include "Generation/NormalmapGenerator.hpp"
 #include "Object/ObjectRepository.h"
 #include "PlanetBody.hpp"
@@ -20,26 +22,27 @@ PlanetGenerator::PlanetGenerator(int size)
 ObjectReference<PlanetBody> PlanetGenerator::generatePlanet(Scene& scene){
     AssetManager& assetManager = scene.getAssetManager();
 
-    DepthmapGenerator gen{};
 
-    CubemapTexture depthTexture = gen.generateCubemap("depthTexture", mSize);
+    GPUDepthmapGenerator depthGen{mSize};
 
-    NormalmapGenerator normalGen{mSize, gen.getSide(CubeFace::Front), gen.getSide(CubeFace::Back), gen.getSide(CubeFace::Left), gen.getSide(CubeFace::Right), gen.getSide(CubeFace::Top), gen.getSide(CubeFace::Bottom)};
-    CubemapTexture normalTexture = normalGen.generateDepthmap("normalTexture");
+    CubemapTexture depthTexture = depthGen.generateCubemap();
+
+    GPUNormalmapGenerator normalGen{mSize, &depthTexture};
+
+    CubemapTexture normalTexture = normalGen.generateNormalmap();
 
 
-
-
-
-    CubemapTextureReference normalMap = assetManager.addAsset(std::move(normalTexture));
     CubemapTextureReference depthMap = assetManager.addAsset(std::move(depthTexture));
+    CubemapTextureReference normalMap = assetManager.addAsset(std::move(normalTexture));
 
     Material planetMaterial = Material{"yes", glm::vec3(1.0f)};
     planetMaterial.setSpecular(0.2f);
     planetMaterial.setShininess(32.0f);
 
     ObjectReference<PlanetBody> planetBody = scene.createObject<PlanetBody>("earth", planetMaterial, normalMap, depthMap);
-    planetBody->setDepthMultiplier(0.5f);
+    planetBody->setDepthMultiplier(0.25f);
+    planetBody->setBottomHeight(0.10f);
+    planetBody->setTopHeight(0.70f);
     planetBody->setColors({getRandomVec3(glm::vec3{0.0f}, glm::vec3{1.0f}), getRandomVec3(glm::vec3{0.0f}, glm::vec3{1.0f}), getRandomVec3(glm::vec3{0.0f}, glm::vec3{1.0f})});
 
     return planetBody;

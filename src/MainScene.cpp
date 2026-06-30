@@ -124,7 +124,7 @@ void MainScene::onLoad(Renderer& renderer, Window& window) {
     constexpr int PLANET_COUNT = 5;
 
     for(int i = 0; i < PLANET_COUNT; i++){
-        PlanetGenerator gen{1024};
+        PlanetGenerator gen{2048};
         ObjectReference<PlanetBody> planet = gen.generatePlanet(*this);
         planet->setPosition(getRandomVec3(glm::vec3{-5.0f}, glm::vec3{5.0f}));
     }

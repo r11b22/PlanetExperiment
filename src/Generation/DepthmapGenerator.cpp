@@ -1,11 +1,17 @@
 #include "Generation/DepthmapGenerator.hpp"
+#include "Shader/ComputeShader.h"
 #include "Texture/CubemapTexture.hpp"
+#include "Texture/Texture.h"
 #include "glm/ext/quaternion_geometric.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "Utilities/Random.h"
 
-DepthmapGenerator::DepthmapGenerator()
-    : mNoiseGenerator(getRandomInt(0, 1000000000)), mNoiseScale(getRandomFloat(1.0f, 5.0f))
+DepthmapGenerator::DepthmapGenerator(int size)
+    : mNoiseGenerator(getRandomInt(0, 1000000000)),
+    mNoiseScale(getRandomFloat(1.0f, 5.0f)),
+    mCompute(ComputeShader::createFromPath("Shaders/DepthmapShader/compute.glsl", 16, 16, 1)),
+    mSize(size),
+    mFrontTexture("front", size, size, GL_RGBA, GL_RGBA8, GL_FLOAT)
 {
 
 }
@@ -14,16 +20,16 @@ DepthmapGenerator::~DepthmapGenerator(){
     clearSideData();
 }
 
-CubemapTexture DepthmapGenerator::generateCubemap(std::string name, int size){
+CubemapTexture DepthmapGenerator::generateCubemap(std::string name){
     clearSideData();
 
     mSides.resize(6);
 
-    CubemapTexture tex{name, size, size, CHANNELS};
+    CubemapTexture tex{name, mSize, mSize, CHANNELS};
 
     // Helper lambda to generate, upload, and instantly free the face data
     auto uploadAndFreeSide = [&](CubeFace face) {
-        auto* data = generateSide(face, size);
+        auto* data = generateSide(face);
         tex.setSidePixelData(face, data);
 
         // Free the memory.
@@ -45,17 +51,17 @@ const unsigned char* DepthmapGenerator::getSide(CubeFace face){
     return mSides[static_cast<int>(face)];
 }
 
-const unsigned char* DepthmapGenerator::generateSide(CubeFace face, int size){
+const unsigned char* DepthmapGenerator::generateSide(CubeFace face){
     // Create a place for the texture to be generated in. this is a 1 channel texture
 
-    unsigned char *data =  new unsigned char[size * size * CHANNELS];
+    unsigned char *data =  new unsigned char[mSize * mSize * CHANNELS];
 
-    for (int i = 0; i < size; i++){
-        for (int j = 0; j < size; j++){
-            int index = (i * size + j) * CHANNELS;
+    for (int i = 0; i < mSize; i++){
+        for (int j = 0; j < mSize; j++){
+            int index = (i * mSize + j) * CHANNELS;
 
-            float u = normalizePixelCoordinates(j, size);
-            float v = normalizePixelCoordinates(i, size);
+            float u = normalizePixelCoordinates(j);
+            float v = normalizePixelCoordinates(i);
 
             glm::vec3 vector = uvToVector(face, u, v);
 
@@ -72,8 +78,8 @@ const unsigned char* DepthmapGenerator::generateSide(CubeFace face, int size){
     return std::move(data);
 }
 
-float DepthmapGenerator::normalizePixelCoordinates(float pix, int size){
-    return ((pix/size)*2.0f)-1.0f;
+float DepthmapGenerator::normalizePixelCoordinates(float pix){
+    return ((pix/mSize)*2.0f)-1.0f;
 }
 
 glm::vec3 DepthmapGenerator::uvToVector(CubeFace face, float u, float v) {

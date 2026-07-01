@@ -10,7 +10,7 @@ class MainScene : public Scene {
         static constexpr int SUN_SCALE = 10.0f;
 
         static constexpr int PLANET_COUNT = 10;
-        static constexpr float DIST_VARIATION = 1.0f;
+        static constexpr float DIST_VARIATION = 5.0f;
         static constexpr float SUN_PADDING = 10.0f;
         static constexpr float SIZE_DIST_RELATION = 3.0f;
 

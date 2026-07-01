@@ -38,8 +38,8 @@ ObjectReference<PlanetBody> PlanetGenerator::generatePlanet(Scene& scene){
 
     ObjectReference<PlanetBody> planetBody = scene.createObject<PlanetBody>("earth", planetMaterial, normalMap, depthMap);
     planetBody->setDepthMultiplier(0.25f);
-    planetBody->setBottomHeight(0.10f);
-    planetBody->setTopHeight(0.70f);
+    planetBody->setBottomHeight(0.20f);
+    planetBody->setTopHeight(0.80f);
     planetBody->setColors({getRandomVec3(glm::vec3{0.0f}, glm::vec3{1.0f}), getRandomVec3(glm::vec3{0.0f}, glm::vec3{1.0f}), getRandomVec3(glm::vec3{0.0f}, glm::vec3{1.0f})});
 
     return planetBody;

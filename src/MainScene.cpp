@@ -5,12 +5,14 @@
 #include "Defaults/Objects/Drawables/MeshObject.h"
 #include "Defaults/Objects/Lighting/AmbientLight.h"
 #include "Defaults/Objects/Lighting/DirectionalLight.h"
+#include "Defaults/Objects/TransformableObject.h"
 #include "FileReader.h"
 #include "Generation/PlanetGenerator.hpp"
 #include "InputManager.h"
 #include "IcoSphere.hpp"
 #include "Mesh/MeshReference.hpp"
 #include "Object/ObjectRepository.h"
+#include "PlanetAnchor.hpp"
 #include "PlanetBody.hpp"
 #include "Renderer/Renderer.h"
 
@@ -31,6 +33,8 @@
 #include <filesystem>
 #include <memory>
 #include <vector>
+
+#include "Defaults/Objects/Lighting/PointLight.h"
 
 
 
@@ -111,8 +115,9 @@ void MainScene::onLoad(Renderer& renderer, Window& window) {
 
 
     window.setVSYNC(false);
+    renderer.setSetting(GL_TEXTURE_CUBE_MAP_SEAMLESS, true);
 
-    setupSphereShader(renderer);
+    setupShaders(renderer);
 
     InputManager* inputManager = new InputManager{window};
 
@@ -120,29 +125,64 @@ void MainScene::onLoad(Renderer& renderer, Window& window) {
 
 
     ObjectReference<AmbientLight> ambientLight = createObject<AmbientLight>("light", glm::vec3{0.2f});
-    ObjectReference<DirectionalLight> directionalLight = createObject<DirectionalLight>("directional light", glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{1.0f});
+    //ObjectReference<DirectionalLight> directionalLight = createObject<DirectionalLight>("directional light", glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{1.0f});
 
-    constexpr int PLANET_COUNT = 10;
-    constexpr int BASE_RESOLUTION = 2048;
+    PlanetGenerator sunGen{BASE_RESOLUTION};
 
+
+
+    ObjectReference<PlanetBody> sun = sunGen.generatePlanet(*this);
+    sun->setScale(glm::vec3{SUN_SCALE});
+    sun->setShader("sunShader");
+
+
+
+    ObjectReference<PointLight> sunLight = createObject<PointLight>("point", glm::vec3{1.0f});
+    sunLight->setParent(sun);
+
+
+    createPlanets(sun);
+
+
+
+    cam->setPosition(glm::vec3{0.0f, 0.0f, 40.0f});
+}
+void MainScene::createPlanets(ObjectReference<PlanetBody> sun){
     for(int i = 0; i < PLANET_COUNT; i++){
         float size = getRandomFloat(0.5f, 4.0f);
 
-        PlanetGenerator gen{static_cast<int>(round((BASE_RESOLUTION * size) / 2.0)) * 2};
-        ObjectReference<PlanetBody> planet = gen.generatePlanet(*this);
-        planet->setPosition(getRandomVec3(glm::vec3{-PLANET_COUNT}, glm::vec3{PLANET_COUNT}));
-        planet->setScale(glm::vec3{size});
-    }
+        ObjectReference<PlanetAnchor> anchor = createObject<PlanetAnchor>("anchor", BASE_ROTATION_SPEED/size);
 
-    cam->setPosition(glm::vec3{0.0f, 0.0f, 4.0f});
+
+
+        PlanetGenerator gen{BASE_RESOLUTION};
+        ObjectReference<PlanetBody> planet = gen.generatePlanet(*this);
+        glm::vec3 offset = getRandomVec3(glm::vec3{DIST_VARIATION}, glm::vec3{DIST_VARIATION});
+        float radius = SUN_SCALE + SUN_PADDING + pow(size, SIZE_DIST_RELATION);
+        float angle = glm::radians(getRandomFloat(0.0f, 360.0f));
+
+        float x = radius * glm::cos(angle);
+        float y = radius * glm::sin(angle);
+
+        planet->setPosition(glm::vec3{x, 0.0f, y} + offset);
+        planet->setScale(glm::vec3{size});
+        planet->setParent(anchor);
+    }
 }
 
-void MainScene::setupSphereShader(Renderer& renderer){
+void MainScene::setupShaders(Renderer& renderer){
     std::unique_ptr<ShaderProgram> sphereProgram = std::make_unique<ShaderProgram>();
     sphereProgram->addShader(FileReader::readFile("Shaders/SphereShader/vertex.glsl").c_str(), GL_VERTEX_SHADER);
     sphereProgram->addShader(FileReader::readFile("Shaders/SphereShader/fragment.glsl").c_str(), GL_FRAGMENT_SHADER);
     sphereProgram->link();
     renderer.addShaderProgram("sphereShader", std::move(sphereProgram));
+
+
+    std::unique_ptr<ShaderProgram> sunProgram = std::make_unique<ShaderProgram>();
+    sunProgram->addShader(FileReader::readFile("Shaders/SunShader/vertex.glsl").c_str(), GL_VERTEX_SHADER);
+    sunProgram->addShader(FileReader::readFile("Shaders/SunShader/fragment.glsl").c_str(), GL_FRAGMENT_SHADER);
+    sunProgram->link();
+    renderer.addShaderProgram("sunShader", std::move(sunProgram));
 }
 
 void MainScene::onUpdate(Renderer& renderer, Window& window, float deltaT) {

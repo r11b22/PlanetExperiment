@@ -6,9 +6,9 @@ precision mediump float;
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
-layout(r8, binding = 0) readonly uniform imageCube depthmap;
+layout(binding = 0) uniform samplerCube depthmap;
 
-layout(rgba8, binding = 1) writeonly uniform imageCube outputTexture;
+layout(rgba8, binding = 1) writeonly uniform image2D outputTexture;
 
 const int FACE_RIGHT = 0;
 const int FACE_LEFT = 1;
@@ -17,147 +17,31 @@ const int FACE_BOTTOM = 3;
 const int FACE_FRONT = 4;
 const int FACE_BACK = 5;
 
-float getRaw(int face, int u, int v) {
-    ivec2 cubeSize = imageSize(depthmap);
-    if (u >= cubeSize.x || v >= cubeSize.y || face >= 6) {
-        return 0.0;
-    }
+uniform int uSide;
 
-    return imageLoad(depthmap, ivec3(u, v, face)).r;
+vec3 uvToCubeDir(int face, vec2 uv, int size) {
+    vec2 st = (uv + 0.5) / vec2(size, size) * 2.0 - 1.0;
+
+    switch (face) {
+        case 0:
+        return vec3(1.0, -st.y, -st.x); // FACE_RIGHT
+        case 1:
+        return vec3(-1.0, -st.y, st.x); // FACE_LEFT
+        case 2:
+        return vec3(st.x, 1.0, st.y); // FACE_TOP
+        case 3:
+        return vec3(st.x, -1.0, -st.y); // FACE_BOTTOM
+        case 4:
+        return vec3(st.x, -st.y, 1.0); // FACE_FRONT
+        case 5:
+        return vec3(-st.x, -st.y, -1.0); // FACE_BACK
+    }
+    return vec3(0.0);
 }
 
 float getHeightAt(int face, int u, int v, int size) {
-    int targetU = u;
-    int targetV = v;
-    int targetFace = face;
-
-    if (targetU < 0) {
-        targetU = size + u - 1;
-
-        // underflow
-        switch (targetFace) {
-            case FACE_FRONT:
-            targetFace = FACE_LEFT;
-            break;
-            case FACE_BACK:
-            targetFace = FACE_RIGHT;
-            break;
-            case FACE_LEFT:
-            targetFace = FACE_BACK;
-            break;
-            case FACE_RIGHT:
-            targetFace = FACE_FRONT;
-            break;
-            case FACE_TOP:
-            targetFace = FACE_LEFT;
-            targetV = -u;
-            targetU = v;
-            break;
-            case FACE_BOTTOM:
-            targetFace = FACE_LEFT;
-            targetV = size + u - 1;
-            targetU = size - v - 1;
-            break;
-        }
-    } else if (targetU >= size) {
-        // overflow
-        targetU = u - size;
-        switch (targetFace) {
-            case FACE_FRONT:
-            targetFace = FACE_RIGHT;
-            break;
-            case FACE_BACK:
-            targetFace = FACE_LEFT;
-            break;
-            case FACE_LEFT:
-            targetFace = FACE_FRONT;
-            break;
-            case FACE_RIGHT:
-            targetFace = FACE_BACK;
-            break;
-            case FACE_TOP:
-            targetFace = FACE_RIGHT;
-
-            targetV = u - size;
-            targetU = size - v - 1;
-            break;
-            case FACE_BOTTOM:
-            targetFace = FACE_RIGHT;
-
-            targetV = size - (u - size) - 1;
-            targetU = v;
-            break;
-        }
-    }
-
-    if (targetV < 0) {
-        // underflow
-
-        switch (targetFace) {
-            case FACE_FRONT:
-            targetFace = FACE_TOP;
-            targetV = size + v - 1;
-            break;
-            case FACE_BACK:
-            targetFace = FACE_TOP;
-            targetV = -v;
-            targetU = size - u - 1;
-            break;
-            case FACE_LEFT:
-            targetFace = FACE_TOP;
-            targetU = -v;
-            targetV = u;
-            break;
-            case FACE_RIGHT:
-            targetFace = FACE_TOP;
-            targetU = size + v - 1;
-            targetV = size - u - 1;
-            break;
-            case FACE_TOP:
-            targetFace = FACE_BACK;
-            targetV = -v;
-            targetU = size - u - 1;
-            break;
-            case FACE_BOTTOM:
-            targetFace = FACE_FRONT;
-            targetV = size + v - 1;
-            break;
-        }
-    } else if (targetV >= size) {
-        // overflow
-        switch (targetFace) {
-            case FACE_FRONT:
-            targetFace = FACE_BOTTOM;
-            targetV = v - size;
-            break;
-            case FACE_BACK:
-            targetFace = FACE_BOTTOM;
-            targetV = size - (v - size) - 1;
-            targetU = size - u - 1;
-            break;
-            case FACE_LEFT:
-            targetFace = FACE_BOTTOM;
-            targetV = size - u - 1;
-            targetU = v - size;
-            break;
-            case FACE_RIGHT:
-            targetFace = FACE_BOTTOM;
-            targetV = u;
-            targetU = size - (v - size) - 1;
-            break;
-            case FACE_TOP:
-            targetFace = FACE_FRONT;
-            targetV = v - size;
-            break;
-            case FACE_BOTTOM:
-            targetFace = FACE_BACK;
-            targetV = size - (v - size) - 1;
-            targetU = size - u - 1;
-            break;
-        }
-    }
-
-    return getRaw(targetFace, targetU, targetV);
+    vec3 dir = uvToCubeDir(face, vec2(u, v), size);
+    return textureLod(depthmap, dir, 0.0).r;
 }
 
 vec3 calculateNormalPixel(int face, int u, int v, int size) {
@@ -178,9 +62,6 @@ vec3 calculateNormalPixel(int face, int u, int v, int size) {
     for (int i = -1; i <= 1; i++) {
         for (int j = -1; j <= 1; j++) {
             float height = getHeightAt(face, u + j, v + i, size);
-
-            // normalize the heigth
-            height /= 255;
 
             int kernelY = i + 1;
             int kernelX = j + 1;
@@ -206,19 +87,15 @@ vec3 calculateNormalPixel(int face, int u, int v, int size) {
 void generateSide(int face, int x, int y, int size) {
     vec3 color = calculateNormalPixel(face, x, y, size);
 
-    // default value for now
-    ivec3 cubeCoord = ivec3(x, y, face);
-    imageStore(outputTexture, cubeCoord, vec4(color, 1.0));
+    imageStore(outputTexture, ivec2(x, y), vec4(color, 1.0));
 }
 
 void main() {
     ivec2 pixelCoord = ivec2(gl_GlobalInvocationID.xy);
 
-    int faceIndex = int(gl_GlobalInvocationID.z);
-
     ivec2 cubeSize = imageSize(outputTexture);
     if (pixelCoord.x >= cubeSize.x || pixelCoord.y >= cubeSize.y) {
         return;
     }
-    generateSide(faceIndex, pixelCoord.x, pixelCoord.y, cubeSize.x);
+    generateSide(uSide, pixelCoord.x, pixelCoord.y, cubeSize.x);
 }

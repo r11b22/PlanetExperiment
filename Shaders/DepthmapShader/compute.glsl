@@ -30,40 +30,60 @@ float hash(vec3 p) {
     return fract(p.x * p.y * p.z);
 }
 
+vec3 hashGradient(vec3 p) {
+    p = vec3(
+            dot(p, vec3(127.1, 311.7, 74.7)),
+            dot(p, vec3(269.5, 183.3, 246.1)),
+            dot(p, vec3(113.5, 271.9, 124.6))
+        );
+    return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
+}
+
 float noise(vec3 p) {
     vec3 i = floor(p);
     vec3 f = fract(p);
 
-    vec3 u = f * f * (3.0 - 2.0 * f);
+    vec3 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
 
-    float frontBottom = mix(hash(i + vec3(0.0, 0.0, 0.0)), hash(i + vec3(1.0, 0.0, 0.0)), u.x);
-    float frontTop = mix(hash(i + vec3(0.0, 1.0, 0.0)), hash(i + vec3(1.0, 1.0, 0.0)), u.x);
-    float frontFace = mix(frontBottom, frontTop, u.y);
+    float n000 = dot(hashGradient(i + vec3(0.0, 0.0, 0.0)), f - vec3(0.0, 0.0, 0.0));
+    float n100 = dot(hashGradient(i + vec3(1.0, 0.0, 0.0)), f - vec3(1.0, 0.0, 0.0));
+    float n010 = dot(hashGradient(i + vec3(0.0, 1.0, 0.0)), f - vec3(0.0, 1.0, 0.0));
+    float n110 = dot(hashGradient(i + vec3(1.0, 1.0, 0.0)), f - vec3(1.0, 1.0, 0.0));
+    float n001 = dot(hashGradient(i + vec3(0.0, 0.0, 1.0)), f - vec3(0.0, 0.0, 1.0));
+    float n101 = dot(hashGradient(i + vec3(1.0, 0.0, 1.0)), f - vec3(1.0, 0.0, 1.0));
+    float n011 = dot(hashGradient(i + vec3(0.0, 1.0, 1.0)), f - vec3(0.0, 1.0, 1.0));
+    float n111 = dot(hashGradient(i + vec3(1.0, 1.0, 1.0)), f - vec3(1.0, 1.0, 1.0));
 
-    float backBottom = mix(hash(i + vec3(0.0, 0.0, 1.0)), hash(i + vec3(1.0, 0.0, 1.0)), u.x);
-    float backTop = mix(hash(i + vec3(0.0, 1.0, 1.0)), hash(i + vec3(1.0, 1.0, 1.0)), u.x);
-    float backFace = mix(backBottom, backTop, u.y);
+    float nx00 = mix(n000, n100, u.x);
+    float nx10 = mix(n010, n110, u.x);
+    float nx01 = mix(n001, n101, u.x);
+    float nx11 = mix(n011, n111, u.x);
 
-    return mix(frontFace, backFace, u.z);
+    float nxy0 = mix(nx00, nx10, u.y);
+    float nxy1 = mix(nx01, nx11, u.y);
+
+    // put it in [-1.0f, 1.0f]
+    return mix(nxy0, nxy1, u.z);
 }
 
 float fbm(vec3 p) {
     float value = 0.0;
     float amplitude = 0.5;
     float frequency = 1.0;
-
+    float maxAmplitude = 0.0;
     for (int i = 0; i < uOctaves; i++) {
         value += amplitude * noise(p * frequency);
+        maxAmplitude += amplitude;
         frequency *= uLacunarity;
         amplitude *= uGain;
     }
-    return value;
+    return ((value / maxAmplitude) + 1.0) / 2.0;
 }
 
 // depthmap
 
 float normalizePixelCoordinates(int pix, float size) {
-    return ((pix / size) * 2.0) - 1.0;
+    return (((float(pix) + 0.5) / size) * 2.0) - 1.0;
 }
 
 vec3 uvToVector(int face, float u, float v) {
@@ -100,7 +120,7 @@ void generateSide(int face, int x, int y, int size) {
     vec3 vector = uvToVector(face, u, v);
     vector += uSeed;
 
-    float randomValue = noise(vector * uNoiseScale);
+    float randomValue = fbm(vector * uNoiseScale);
 
     // default value for now
     ivec3 cubeCoord = ivec3(x, y, face);

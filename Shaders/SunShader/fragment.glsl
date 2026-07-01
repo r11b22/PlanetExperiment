@@ -94,41 +94,7 @@ void main()
 
     vec3 norm = getNormal();
     vec3 viewDir = normalize(FragPos - uCameraPos);
-    vec3 totalLight = uAmbient * vec3(texColor);
 
-    for (int i = 0; i < uNumPointLights; i++) {
-        PointLight light = uPointLights[i];
-
-        vec3 lightDirection = normalize(light.position - FragPos);
-        float distance = length(light.position - FragPos);
-
-        float diff = max(dot(norm, lightDirection), 0.0);
-
-        vec3 reflectDir = reflect(-lightDirection, norm);
-        float spec = pow(max(dot(-viewDir, reflectDir), 0.0), uMaterialProperties.shininess);
-
-        vec3 diffuse = uMaterialProperties.diffuse * light.diffuse * diff * vec3(texColor);
-        vec3 specular = uMaterialProperties.specular * light.specular * spec;
-
-        totalLight += (diffuse + specular);
-    }
-
-    for (int i = 0; i < uNumDirectionalLights; i++) {
-        DirectionalLight light = uDirectionalLights[i];
-
-        vec3 lightDirection = normalize(-light.direction);
-
-        float diff = max(dot(norm, lightDirection), 0.0);
-
-        vec3 reflectDir = reflect(-lightDirection, norm);
-        float spec = pow(max(dot(-viewDir, reflectDir), 0.0), uMaterialProperties.shininess);
-
-        vec3 diffuse = uMaterialProperties.diffuse * light.diffuse * diff * vec3(texColor);
-        vec3 specular = uMaterialProperties.specular * light.specular * spec;
-
-        totalLight += (diffuse + specular);
-    }
-
-    vec4 outColor = vec4(totalLight, texColor.a);
+    vec4 outColor = texColor;
     FragColor = outColor;
 }

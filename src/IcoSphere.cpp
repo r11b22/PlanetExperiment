@@ -5,31 +5,44 @@
 #include "glm/ext/scalar_common.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include <algorithm>
+#include <format>
 #include <numeric>
 #include <unordered_map>
 #include <vector>
 
 IcoSphere::IcoSphere(std::string name, Material material, int subdivisions)
-    : TransformableObject(name), MeshObject(name, {}, material)
+    : TransformableObject(name), MeshObject(name, {}, material), mSubdivisions(subdivisions)
 {
     setShader("sphereShader");
-    mVertices = createBaseVertices();
 
-    mIndices = createBaseIndices();
 
-    for (int i = 0; i < subdivisions; i++){
-        subdivide(mVertices, mIndices);
-    }
+
 }
 
 
 void IcoSphere::onLoad() {
-    Mesh mesh{"cube"};
+    std::string assetName = std::format("icosphere-{}", mSubdivisions);
 
-    mesh.setVertices(mVertices);
-    mesh.setIndices(mIndices);
+    if(!getAssetManager().hasAssetOfName<Mesh>(assetName)){
+        // create the mesh
+        std::vector<float> vertices = createBaseVertices();
+        std::vector<unsigned int> indices = createBaseIndices();
 
-    MeshReference ref = getAssetManager().addAsset<Mesh>(std::move(mesh));
+        for (int i = 0; i < mSubdivisions; i++){
+            subdivide(vertices, indices);
+        }
+
+        Mesh mesh{assetName};
+
+        mesh.setVertices(vertices);
+        mesh.setIndices(indices);
+
+        getAssetManager().addAsset<Mesh>(std::move(mesh));
+    }
+
+
+
+    MeshReference ref = getAssetManager().getAssetByName<Mesh>(assetName);
     setMesh(ref);
 }
 
@@ -109,7 +122,7 @@ std::vector<unsigned int> IcoSphere::createBaseIndices() {
        };
 }
 
-void IcoSphere::subdivide(std::vector<float> vertices, std::vector<unsigned int> indices){
+void IcoSphere::subdivide(std::vector<float>& vertices, std::vector<unsigned int>& indices){
     std::vector<unsigned int> newIndices{};
 
     const int faces = indices.size() / VERTICES_PER_FACE;
@@ -147,9 +160,7 @@ void IcoSphere::subdivide(std::vector<float> vertices, std::vector<unsigned int>
         newIndices.push_back(mid2);
         newIndices.push_back(mid3);
     }
-
-    mVertices = vertices;
-    mIndices = newIndices;
+    indices = std::move(newIndices);
 }
 
 int IcoSphere::createEdgeMidpoint(int pointA, int pointB, std::vector<float>& vertices, std::unordered_map<EdgeKey, int>& cache){

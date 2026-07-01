@@ -32,8 +32,10 @@ namespace std {
 
 class IcoSphere : public MeshObject {
     private:
-        std::vector<float> mVertices;
-        std::vector<unsigned int> mIndices;
+        int mSubdivisions = 0;
+
+
+
 
         const static int VERTEX_SIZE = 8;
         const static int VERTICES_PER_FACE = 3;
@@ -44,7 +46,7 @@ class IcoSphere : public MeshObject {
     private:
         std::vector<float> createBaseVertices();
         std::vector<unsigned int>  createBaseIndices();
-        void subdivide(std::vector<float> vertices, std::vector<unsigned int> indices);
+        void subdivide(std::vector<float>& vertices, std::vector<unsigned int>& indices);
         /**
          * Gets the index for the vertex of the point between the 2 given points, If the point does not yet exists: create a new one
          */

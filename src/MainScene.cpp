@@ -18,6 +18,7 @@
 
 #include "Defaults/Camera/FirstPersonCamera.h"
 #include "Shader/ShaderProgram.h"
+#include "SkyMap.hpp"
 #include "Texture/CubemapAsset.hpp"
 #include "Texture/CubemapTexture.hpp"
 #include "Texture/CubemapTextureReference.hpp"
@@ -39,75 +40,20 @@
 
 
 MainScene::MainScene(){
-    addAsset(AssetLoadInfo<Texture>{"testTexture", "Textures/test_texture.png"});
-    addAsset(AssetLoadInfo<Texture>{"earthTexture", "Textures/2k_earth_daymap.jpg", true});
+    AssetLoadInfo<CubemapTexture> starSkybox = {"starSkyBox"};
 
-    AssetLoadInfo<CubemapTexture> earthMap = {"earthCubemap"};
+    std::filesystem::path dir = "Textures/stars";
 
-    // Base directory
-    std::filesystem::path baseDir = "Textures/earth/Color";
+    starSkybox.setPath(CubeFace::Right,  dir / "px.png"); // Positive X
+    starSkybox.setPath(CubeFace::Left,   dir / "nx.png"); // Negative X
 
-    // Mapping the faces to their respective file names
-    earthMap.setPath(CubeFace::Right,  baseDir / "px.png"); // Positive X
-    earthMap.setPath(CubeFace::Left,   baseDir / "nx.png"); // Negative X
+    starSkybox.setPath(CubeFace::Top,    dir / "py.png"); // Positive Y
+    starSkybox.setPath(CubeFace::Bottom, dir / "ny.png"); // Negative Y
 
-    earthMap.setPath(CubeFace::Top,    baseDir / "py.png"); // Positive Y
-    earthMap.setPath(CubeFace::Bottom, baseDir / "ny.png"); // Negative Y
+    starSkybox.setPath(CubeFace::Front,  dir / "pz.png"); // Positive Z
+    starSkybox.setPath(CubeFace::Back,   dir / "nz.png"); // Negative Z
 
-    earthMap.setPath(CubeFace::Front,  baseDir / "nz.png"); // Positive Z
-    earthMap.setPath(CubeFace::Back,   baseDir / "pz.png"); // Negative Z
-
-    addAsset(earthMap);
-
-
-    AssetLoadInfo<CubemapTexture> earthNormalMap = {"earthNormalCubemap"};
-
-    // Base directory
-    std::filesystem::path normalBaseDir = "Textures/earth/Normals";
-
-    // Mapping the faces to their respective file names
-    earthNormalMap.setPath(CubeFace::Right,  normalBaseDir / "px.png"); // Positive X
-    earthNormalMap.setPath(CubeFace::Left,   normalBaseDir / "nx.png"); // Negative X
-
-    earthNormalMap.setPath(CubeFace::Top,    normalBaseDir / "py.png"); // Positive Y
-    earthNormalMap.setPath(CubeFace::Bottom, normalBaseDir / "ny.png"); // Negative Y
-
-    earthNormalMap.setPath(CubeFace::Front,  normalBaseDir / "nz.png"); // Positive Z
-    earthNormalMap.setPath(CubeFace::Back,   normalBaseDir / "pz.png"); // Negative Z
-
-    addAsset(earthNormalMap);
-
-
-    AssetLoadInfo<CubemapTexture> earthDepthMap = {"earthDepthCubemap"};
-    // Base directory
-    std::filesystem::path baseDepthDir = "Textures/earth/depthmap";
-
-    // Mapping the faces to their respective file names
-    earthDepthMap.setPath(CubeFace::Right,  baseDepthDir / "px.png"); // Positive X
-    earthDepthMap.setPath(CubeFace::Left,   baseDepthDir / "nx.png"); // Negative X
-
-    earthDepthMap.setPath(CubeFace::Top,    baseDepthDir / "py.png"); // Positive Y
-    earthDepthMap.setPath(CubeFace::Bottom, baseDepthDir / "ny.png"); // Negative Y
-
-    earthDepthMap.setPath(CubeFace::Front,  baseDepthDir / "nz.png"); // Positive Z
-    earthDepthMap.setPath(CubeFace::Back,   baseDepthDir / "pz.png"); // Negative Z
-
-    addAsset(earthDepthMap);
-
-    AssetLoadInfo<CubemapTexture> uvMap = {"uvMap"};
-
-    std::filesystem::path dir = "Textures/test_uv";
-
-    uvMap.setPath(CubeFace::Right,  dir / "right.png"); // Positive X
-    uvMap.setPath(CubeFace::Left,   dir / "left.png"); // Negative X
-
-    uvMap.setPath(CubeFace::Top,    dir / "top.png"); // Positive Y
-    uvMap.setPath(CubeFace::Bottom, dir / "bottom.png"); // Negative Y
-
-    uvMap.setPath(CubeFace::Front,  dir / "front.png"); // Positive Z
-    uvMap.setPath(CubeFace::Back,   dir / "back.png"); // Negative Z
-
-    addAsset(uvMap);
+    addAsset(starSkybox);
 }
 
 void MainScene::onLoad(Renderer& renderer, Window& window) {
@@ -125,7 +71,6 @@ void MainScene::onLoad(Renderer& renderer, Window& window) {
 
 
     ObjectReference<AmbientLight> ambientLight = createObject<AmbientLight>("light", glm::vec3{0.2f});
-    //ObjectReference<DirectionalLight> directionalLight = createObject<DirectionalLight>("directional light", glm::vec3{-1.0f, -1.0f, -1.0f}, glm::vec3{1.0f});
 
     PlanetGenerator sunGen{BASE_RESOLUTION};
 
@@ -146,6 +91,8 @@ void MainScene::onLoad(Renderer& renderer, Window& window) {
 
 
     cam->setPosition(glm::vec3{0.0f, 0.0f, 40.0f});
+
+    ObjectReference<SkyMap> skyMap = createObject<SkyMap>("skymap", getAssetManager().getAssetByName<CubemapTexture>("starSkyBox"));
 }
 void MainScene::createPlanets(ObjectReference<PlanetBody> sun){
     for(int i = 0; i < PLANET_COUNT; i++){
@@ -183,6 +130,12 @@ void MainScene::setupShaders(Renderer& renderer){
     sunProgram->addShader(FileReader::readFile("Shaders/SunShader/fragment.glsl").c_str(), GL_FRAGMENT_SHADER);
     sunProgram->link();
     renderer.addShaderProgram("sunShader", std::move(sunProgram));
+
+    std::unique_ptr<ShaderProgram> skyboxProgram = std::make_unique<ShaderProgram>();
+    skyboxProgram->addShader(FileReader::readFile("Shaders/SkyboxShader/vertex.glsl").c_str(), GL_VERTEX_SHADER);
+    skyboxProgram->addShader(FileReader::readFile("Shaders/SkyboxShader/fragment.glsl").c_str(), GL_FRAGMENT_SHADER);
+    skyboxProgram->link();
+    renderer.addShaderProgram("skyboxShader", std::move(skyboxProgram));
 }
 
 void MainScene::onUpdate(Renderer& renderer, Window& window, float deltaT) {

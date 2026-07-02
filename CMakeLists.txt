@@ -32,6 +32,9 @@ add_executable(${PROJECT_NAME}
     src/PlanetAnchor.cpp
     include/PlanetAnchor.hpp
 
+    src/SkyMap.cpp
+    include/SkyMap.hpp
+
     src/Generation/PlanetGenerator.cpp
     include/Generation/PlanetGenerator.hpp
 
